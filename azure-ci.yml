@@ -1,0 +1,37 @@
+variables:
+  configuration: Release
+
+pool:
+  vmImage: 'windows-2019'
+
+trigger:
+  batch: false
+  branches:
+    include:
+      - master
+      - release/*
+  paths:
+    include:
+    - '*'
+    exclude:
+    - 'readme.md'
+    - 'changelog.md'
+    - 'docs/*'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'use .NET Core SDK from global.json'
+  inputs:
+    packageType: 'sdk'
+    useGlobalJson: true
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet pack'
+  inputs:
+    command: 'custom'
+    custom: pack
+    arguments: '-o $(Build.ArtifactStagingDirectory) --include-symbols'
+
+- publish: '$(Build.ArtifactStagingDirectory)'
+  displayName: 'publish build artifact'
+  name: nugetPackage    
