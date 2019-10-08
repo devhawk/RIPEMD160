@@ -12,6 +12,7 @@
 //   status of this code is not clear. 
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -19,128 +20,127 @@ namespace System.Security.Cryptography
 {
     public class RIPEMD160Managed : RIPEMD160
     {
-        static public uint ReadUInt32(byte[] buffer, long offset)
+        private const int RMDsize = 160;
+        private uint[] MDbuf = new uint[RMDsize / 32];
+        private uint[] X = new uint[16];               /* current 16-word chunk        */
+        private byte [] UnhashedBuffer = new byte[64];
+        private int UnhashedBufferLength = 0;
+        private long HashedLength = 0;
+
+        public RIPEMD160Managed()
         {
-            return
-                (Convert.ToUInt32(buffer[3 + offset]) << 24) |
-                (Convert.ToUInt32(buffer[2 + offset]) << 16) |
-                (Convert.ToUInt32(buffer[1 + offset]) << 8) |
-                (Convert.ToUInt32(buffer[0 + offset]));
+            Initialize();
         }
 
-        private static uint RotateLeft(uint value, int bits)
+        public override void Initialize()
         {
-            return (value << bits) | (value >> (32 - bits));
+            MDinit(ref MDbuf);
+            X = new uint[16];
+            X.AsSpan().Fill(0);
+            HashedLength = 0;
+            UnhashedBufferLength = 0;
         }
 
-        /* the five basic functions F(), G() and H() */
-        private static uint F(uint x, uint y, uint z)
+        protected override void HashCore (byte[] array, int ibStart, int cbSize)
         {
-            return x ^ y ^ z;
+            HashCore(array.AsSpan().Slice(ibStart, cbSize));
         }
 
-        private static uint G(uint x, uint y, uint z)
+        protected override void HashCore(ReadOnlySpan<byte> source) // byte[] array, int ibStart, int cbSize
         {
-            return (x & y) | (~x & z);
+            var index = 0;
+            var cbSize = source.Length;
+            while (index < cbSize)
+            {
+                var bytesRemaining = cbSize - index;
+                if (UnhashedBufferLength > 0)
+                {
+                    if ((bytesRemaining + UnhashedBufferLength) >= (UnhashedBuffer.Length))
+                    {
+                        var len = (UnhashedBuffer.Length) - UnhashedBufferLength;
+                        source.Slice(index, len).CopyTo(UnhashedBuffer.AsSpan().Slice(UnhashedBufferLength, len));
+                        index += (UnhashedBuffer.Length) - UnhashedBufferLength;
+                        UnhashedBufferLength = UnhashedBuffer.Length;
+
+                        for (var i = 0; i < 16; i++)
+                            X[i] = ReadUInt32(UnhashedBuffer, i * 4);
+
+                        compress(ref MDbuf, X);
+                        UnhashedBufferLength = 0;
+                    }
+                    else
+                    {
+                        source.Slice(index, bytesRemaining).CopyTo(UnhashedBuffer.AsSpan().Slice(UnhashedBufferLength, bytesRemaining));
+                        UnhashedBufferLength += bytesRemaining;
+                        index += bytesRemaining;
+                    }
+                }
+                else
+                {
+                    if (bytesRemaining >= (UnhashedBuffer.Length))
+                    {
+                        for (var i = 0; i < 16; i++)
+                            X[i] = ReadUInt32(source.Slice(index + (i * 4)));
+                        index += UnhashedBuffer.Length;
+
+                        compress(ref MDbuf, X);
+                    }
+                    else
+                    {
+                        source.Slice(index, bytesRemaining).CopyTo(UnhashedBuffer);
+                        UnhashedBufferLength = bytesRemaining;
+                        index += bytesRemaining;
+                    }
+                }
+            }
+
+            HashedLength += cbSize;
         }
 
-        private static uint H(uint x, uint y, uint z)
+        protected override byte[] HashFinal ()
         {
-            return (x | ~y) ^ z;
+            var result = new byte[RMDsize / 8];
+
+            if (TryHashFinal(result, out var bytesWritten))
+            {
+                Debug.Assert(bytesWritten == result.Length);
+                return result;
+            }
+
+            throw new Exception("TryHashFinal failed");
         }
 
-        private static uint I(uint x, uint y, uint z)
+        protected override bool TryHashFinal(Span<byte> destination, out int bytesWritten)
         {
-            return (x & z) | (y & ~z);
-        }
+            MDfinish(ref MDbuf, UnhashedBuffer, 0, Convert.ToUInt32(HashedLength), 0);
 
-        private static uint J(uint x, uint y, uint z)
-        {
-            return x ^ (y | ~z);
-        }
+            var requiredBufferLength = RMDsize / 8;
+            if (destination.Length > requiredBufferLength)
+            {
+                for (var i = 0; i < RMDsize / 8; i += 4)
+                {
+                    destination[i] = Convert.ToByte(MDbuf[i >> 2] & 0xFF);         /* implicit cast to byte  */
+                    destination[i + 1] = Convert.ToByte((MDbuf[i >> 2] >> 8) & 0xFF);  /*  extracts the 8 least  */
+                    destination[i + 2] = Convert.ToByte((MDbuf[i >> 2] >> 16) & 0xFF);  /*  significant bits.     */
+                    destination[i + 3] = Convert.ToByte((MDbuf[i >> 2] >> 24) & 0xFF);
+                }
 
-        /* the ten basic operations FF() through III() */
+                bytesWritten = requiredBufferLength;
+                return true;
+            }
 
-        private static void FF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += F(b, c, d) + x;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-
-        private static void GG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += G(b, c, d) + x + (uint)0x5a827999;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-
-        private static void HH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += H(b, c, d) + x + (uint)0x6ed9eba1;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-        private static void II(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += I(b, c, d) + x + (uint)0x8f1bbcdc;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-        private static void JJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += J(b, c, d) + x + (uint)0xa953fd4e;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-        private static void FFF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += F(b, c, d) + x;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-        private static void GGG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += G(b, c, d) + x + (uint)0x7a6d76e9;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-        private static void HHH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += H(b, c, d) + x + (uint)0x6d703ef3;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-        private static void III(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += I(b, c, d) + x + (uint)0x5c4dd124;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
-        }
-
-        private static void JJJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
-        {
-            a += J(b, c, d) + x + (uint)0x50a28be6;
-            a = RotateLeft(a, s) + e;
-            c = RotateLeft(c, 10);
+            bytesWritten = default;
+            return false;
         }
 
         // initializes MDbuffer to "magic constants"
         static public void MDinit(ref uint[] MDbuf)
         {
-            MDbuf[0] = (uint)0x67452301;
-            MDbuf[1] = (uint)0xefcdab89;
-            MDbuf[2] = (uint)0x98badcfe;
-            MDbuf[3] = (uint)0x10325476;
-            MDbuf[4] = (uint)0xc3d2e1f0;
+            MDbuf[0] = 0x67452301;
+            MDbuf[1] = 0xefcdab89;
+            MDbuf[2] = 0x98badcfe;
+            MDbuf[3] = 0x10325476;
+            MDbuf[4] = 0xc3d2e1f0;
         }
 
         //  the compression function.
@@ -354,7 +354,8 @@ namespace System.Security.Cryptography
         static public void MDfinish(ref uint[] MDbuf, byte[] strptr, long index, uint lswlen, uint mswlen)
         {
             //UInt32 i;                                 /* counter       */
-            var X = Enumerable.Repeat((uint)0, 16).ToArray();                             /* message words */
+            var X = new uint[16]; /* message words */
+            X.AsSpan().Fill(0);
 
 
             /* put bytes from strptr into X */
@@ -379,90 +380,131 @@ namespace System.Security.Cryptography
             X[15] = (lswlen >> 29) | (mswlen << 3);
             compress(ref MDbuf, X);
         }
-        private static int RMDsize = 160;
-        private uint[] MDbuf = new uint[RMDsize / 32];
-        private uint[] X = new uint[16];               /* current 16-word chunk        */
-        private byte [] UnhashedBuffer = new byte[64];
-        private int UnhashedBufferLength = 0;
-        private long HashedLength = 0;
 
-        public RIPEMD160Managed()
+        private static uint ReadUInt32(byte[] buffer, long offset)
         {
-            Initialize();
+            return
+                (Convert.ToUInt32(buffer[3 + offset]) << 24) |
+                (Convert.ToUInt32(buffer[2 + offset]) << 16) |
+                (Convert.ToUInt32(buffer[1 + offset]) << 8) |
+                (Convert.ToUInt32(buffer[0 + offset]));
         }
 
-        protected override void HashCore (byte[] array, int ibStart, int cbSize)
+        private static uint ReadUInt32(ReadOnlySpan<byte> buffer)
         {
-            var index = 0;
-            while(index < cbSize)
-            {
-                var bytesRemaining = cbSize - index;
-                if(UnhashedBufferLength > 0)
-                {
-                    if((bytesRemaining + UnhashedBufferLength) >= (UnhashedBuffer.Length))
-                    {
-                        Array.Copy(array, ibStart + index, UnhashedBuffer, UnhashedBufferLength, (UnhashedBuffer.Length) - UnhashedBufferLength);
-                        index += (UnhashedBuffer.Length) - UnhashedBufferLength;
-                        UnhashedBufferLength = UnhashedBuffer.Length;
-
-                        for (var i = 0; i < 16; i++)
-                            X[i] = ReadUInt32(UnhashedBuffer, i * 4);
-
-                        compress(ref MDbuf, X);
-                        UnhashedBufferLength = 0;
-                    }
-                    else
-                    {
-                        Array.Copy(array, ibStart + index, UnhashedBuffer, UnhashedBufferLength, bytesRemaining);
-                        UnhashedBufferLength += bytesRemaining;
-                        index += bytesRemaining;
-                    }
-                }
-                else
-                {
-                    if(bytesRemaining >= (UnhashedBuffer.Length))
-                    {
-                        for (var i = 0; i < 16; i++)
-                            X[i] = ReadUInt32(array, index + (i * 4));
-                        index += UnhashedBuffer.Length;
-
-                        compress(ref MDbuf, X);
-                    }
-                    else
-                    {
-                        Array.Copy(array, ibStart + index, UnhashedBuffer, 0, bytesRemaining);
-                        UnhashedBufferLength = bytesRemaining;
-                        index += bytesRemaining;
-                    }
-                }
-            }
-
-            HashedLength += cbSize;
+            return
+                (Convert.ToUInt32(buffer[3]) << 24) |
+                (Convert.ToUInt32(buffer[2]) << 16) |
+                (Convert.ToUInt32(buffer[1]) << 8) |
+                (Convert.ToUInt32(buffer[0]));
         }
 
-        protected override byte[] HashFinal ()
+        private static uint RotateLeft(uint value, int bits)
         {
-            MDfinish(ref MDbuf, UnhashedBuffer, 0, Convert.ToUInt32(HashedLength), 0);
-
-            var result = new byte [RMDsize / 8];
-
-            for (var i = 0; i < RMDsize / 8; i += 4)
-            {
-                result[i] = Convert.ToByte(MDbuf[i >> 2] & 0xFF);         /* implicit cast to byte  */
-                result[i + 1] = Convert.ToByte((MDbuf[i >> 2] >> 8) & 0xFF);  /*  extracts the 8 least  */
-                result[i + 2] = Convert.ToByte((MDbuf[i >> 2] >> 16) & 0xFF);  /*  significant bits.     */
-                result[i + 3] = Convert.ToByte((MDbuf[i >> 2] >> 24) & 0xFF);
-            }
-
-            return result;
+            return (value << bits) | (value >> (32 - bits));
         }
 
-        public override void Initialize ()
+        #region basic functions F(), through H() and FF() through III() 
+
+        /* the five basic functions F(), G() and H() */
+        private static uint F(uint x, uint y, uint z)
         {
-            MDinit(ref MDbuf);
-            X = Enumerable.Repeat((uint)0, 16).ToArray();
-            HashedLength = 0;
-            UnhashedBufferLength = 0;
+            return x ^ y ^ z;
         }
+
+        private static uint G(uint x, uint y, uint z)
+        {
+            return (x & y) | (~x & z);
+        }
+
+        private static uint H(uint x, uint y, uint z)
+        {
+            return (x | ~y) ^ z;
+        }
+
+        private static uint I(uint x, uint y, uint z)
+        {
+            return (x & z) | (y & ~z);
+        }
+
+        private static uint J(uint x, uint y, uint z)
+        {
+            return x ^ (y | ~z);
+        }
+
+        /* the ten basic operations FF() through III() */
+
+        private static void FF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += F(b, c, d) + x;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+
+        private static void GG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += G(b, c, d) + x + (uint)0x5a827999;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+
+        private static void HH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += H(b, c, d) + x + (uint)0x6ed9eba1;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+        private static void II(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += I(b, c, d) + x + (uint)0x8f1bbcdc;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+        private static void JJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += J(b, c, d) + x + (uint)0xa953fd4e;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+        private static void FFF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += F(b, c, d) + x;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+        private static void GGG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += G(b, c, d) + x + (uint)0x7a6d76e9;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+        private static void HHH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += H(b, c, d) + x + (uint)0x6d703ef3;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+        private static void III(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += I(b, c, d) + x + (uint)0x5c4dd124;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+
+        private static void JJJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
+        {
+            a += J(b, c, d) + x + (uint)0x50a28be6;
+            a = RotateLeft(a, s) + e;
+            c = RotateLeft(c, 10);
+        }
+        #endregion
     }
 }
