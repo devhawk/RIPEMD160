@@ -26,11 +26,14 @@ steps:
     useGlobalJson: true
 
 - task: DotNetCoreCLI@2
-  displayName: 'dotnet pack'
   inputs:
-    command: 'custom'
-    custom: pack
-    arguments: '-o $(Build.ArtifactStagingDirectory) --include-symbols'
+    command: 'pack'
+    packagesToPack: '**/*.csproj'
+    versioningScheme: 'off'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
 
 - publish: '$(Build.ArtifactStagingDirectory)'
   displayName: 'publish build artifact'
