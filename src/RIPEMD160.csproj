@@ -9,6 +9,8 @@
     <PackageId>DevHawk.RIPEMD160</PackageId>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/devhawk/RIPEMD160</PackageProjectUrl>
+    <IncludeSymbols>true</IncludeSymbols>	
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>	
   </PropertyGroup>
 
 </Project>
