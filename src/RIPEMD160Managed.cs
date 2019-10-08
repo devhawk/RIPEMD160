@@ -11,10 +11,10 @@
 //   https://homes.esat.kuleuven.be/~bosselae/ripemd160.html) the legal license
 //   status of this code is not clear. 
 
-using System;
+// Updated to .NET Standard 2.1 by Harry Pierson (aka DevHawk)
+
+using System.Buffers.Binary;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 namespace System.Security.Cryptography
 {
@@ -22,8 +22,8 @@ namespace System.Security.Cryptography
     {
         private const int RMDsize = 160;
         private uint[] MDbuf = new uint[RMDsize / 32];
-        private uint[] X = new uint[16];               /* current 16-word chunk        */
-        private byte [] UnhashedBuffer = new byte[64];
+        private uint[] X;               /* current 16-word chunk        */
+        private readonly byte [] UnhashedBuffer = new byte[64];
         private int UnhashedBufferLength = 0;
         private long HashedLength = 0;
 
@@ -35,8 +35,7 @@ namespace System.Security.Cryptography
         public override void Initialize()
         {
             MDinit(ref MDbuf);
-            X = new uint[16];
-            X.AsSpan().Fill(0);
+            X = new uint[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             HashedLength = 0;
             UnhashedBufferLength = 0;
         }
@@ -46,7 +45,7 @@ namespace System.Security.Cryptography
             HashCore(array.AsSpan().Slice(ibStart, cbSize));
         }
 
-        protected override void HashCore(ReadOnlySpan<byte> source) // byte[] array, int ibStart, int cbSize
+        protected override void HashCore(ReadOnlySpan<byte> source)
         {
             var index = 0;
             var cbSize = source.Length;
@@ -63,7 +62,7 @@ namespace System.Security.Cryptography
                         UnhashedBufferLength = UnhashedBuffer.Length;
 
                         for (var i = 0; i < 16; i++)
-                            X[i] = ReadUInt32(UnhashedBuffer, i * 4);
+                            X[i] = BinaryPrimitives.ReadUInt32LittleEndian(UnhashedBuffer.AsSpan().Slice(i * 4));
 
                         compress(ref MDbuf, X);
                         UnhashedBufferLength = 0;
@@ -80,7 +79,7 @@ namespace System.Security.Cryptography
                     if (bytesRemaining >= (UnhashedBuffer.Length))
                     {
                         for (var i = 0; i < 16; i++)
-                            X[i] = ReadUInt32(source.Slice(index + (i * 4)));
+                            X[i] = BinaryPrimitives.ReadUInt32LittleEndian(source.Slice(index + (i * 4)));
                         index += UnhashedBuffer.Length;
 
                         compress(ref MDbuf, X);
@@ -115,7 +114,7 @@ namespace System.Security.Cryptography
             MDfinish(ref MDbuf, UnhashedBuffer, 0, Convert.ToUInt32(HashedLength), 0);
 
             var requiredBufferLength = RMDsize / 8;
-            if (destination.Length > requiredBufferLength)
+            if (destination.Length >= requiredBufferLength)
             {
                 for (var i = 0; i < RMDsize / 8; i += 4)
                 {
@@ -354,9 +353,7 @@ namespace System.Security.Cryptography
         static public void MDfinish(ref uint[] MDbuf, byte[] strptr, long index, uint lswlen, uint mswlen)
         {
             //UInt32 i;                                 /* counter       */
-            var X = new uint[16]; /* message words */
-            X.AsSpan().Fill(0);
-
+            var X = new uint[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; /* message words */
 
             /* put bytes from strptr into X */
             for (var i = 0; i < (lswlen & 63); i++)
@@ -372,31 +369,13 @@ namespace System.Security.Cryptography
             {
                 /* length goes to next block */
                 compress(ref MDbuf, X);
-                X = Enumerable.Repeat((uint)0, 16).ToArray();
+                X = new uint[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             }
 
             /* append length in bits*/
             X[14] = lswlen << 3;
             X[15] = (lswlen >> 29) | (mswlen << 3);
             compress(ref MDbuf, X);
-        }
-
-        private static uint ReadUInt32(byte[] buffer, long offset)
-        {
-            return
-                (Convert.ToUInt32(buffer[3 + offset]) << 24) |
-                (Convert.ToUInt32(buffer[2 + offset]) << 16) |
-                (Convert.ToUInt32(buffer[1 + offset]) << 8) |
-                (Convert.ToUInt32(buffer[0 + offset]));
-        }
-
-        private static uint ReadUInt32(ReadOnlySpan<byte> buffer)
-        {
-            return
-                (Convert.ToUInt32(buffer[3]) << 24) |
-                (Convert.ToUInt32(buffer[2]) << 16) |
-                (Convert.ToUInt32(buffer[1]) << 8) |
-                (Convert.ToUInt32(buffer[0]));
         }
 
         private static uint RotateLeft(uint value, int bits)

@@ -4,6 +4,8 @@
 
 // Contributed to .NET Foundation by Darren R. Starr - Conscia Norway AS
 
+// Updated to .NET Standard 2.1 by Harry Pierson (aka DevHawk)
+
 namespace System.Security.Cryptography
 {
     public abstract class RIPEMD160 : System.Security.Cryptography.HashAlgorithm
