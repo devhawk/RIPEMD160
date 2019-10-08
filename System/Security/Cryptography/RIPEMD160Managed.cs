@@ -19,7 +19,7 @@ namespace System.Security.Cryptography
 {
     public class RIPEMD160Managed : RIPEMD160
     {
-        static public UInt32 ReadUInt32(byte[] buffer, long offset)
+        static public uint ReadUInt32(byte[] buffer, long offset)
         {
             return
                 (Convert.ToUInt32(buffer[3 + offset]) << 24) |
@@ -28,40 +28,40 @@ namespace System.Security.Cryptography
                 (Convert.ToUInt32(buffer[0 + offset]));
         }
 
-        static UInt32 RotateLeft(UInt32 value, int bits)
+        private static uint RotateLeft(uint value, int bits)
         {
             return (value << bits) | (value >> (32 - bits));
         }
 
         /* the five basic functions F(), G() and H() */
-        static UInt32 F(UInt32 x, UInt32 y, UInt32 z)
+        private static uint F(uint x, uint y, uint z)
         {
             return x ^ y ^ z;
         }
 
-        static UInt32 G(UInt32 x, UInt32 y, UInt32 z)
+        private static uint G(uint x, uint y, uint z)
         {
             return (x & y) | (~x & z);
         }
 
-        static UInt32 H(UInt32 x, UInt32 y, UInt32 z)
+        private static uint H(uint x, uint y, uint z)
         {
             return (x | ~y) ^ z;
         }
 
-        static UInt32 I(UInt32 x, UInt32 y, UInt32 z)
+        private static uint I(uint x, uint y, uint z)
         {
             return (x & z) | (y & ~z);
         }
 
-        static UInt32 J(UInt32 x, UInt32 y, UInt32 z)
+        private static uint J(uint x, uint y, uint z)
         {
             return x ^ (y | ~z);
         }
 
         /* the ten basic operations FF() through III() */
 
-        static void FF(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void FF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
             a += F(b, c, d) + x;
             a = RotateLeft(a, s) + e;
@@ -69,94 +69,94 @@ namespace System.Security.Cryptography
         }
 
 
-        static void GG(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void GG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += G(b, c, d) + x + (UInt32)0x5a827999;
+            a += G(b, c, d) + x + (uint)0x5a827999;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
 
-        static void HH(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void HH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += H(b, c, d) + x + (UInt32)0x6ed9eba1;
+            a += H(b, c, d) + x + (uint)0x6ed9eba1;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        static void II(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void II(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += I(b, c, d) + x + (UInt32)0x8f1bbcdc;
+            a += I(b, c, d) + x + (uint)0x8f1bbcdc;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        static void JJ(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void JJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += J(b, c, d) + x + (UInt32)0xa953fd4e;
+            a += J(b, c, d) + x + (uint)0xa953fd4e;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        static void FFF(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void FFF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
             a += F(b, c, d) + x;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        static void GGG(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void GGG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += G(b, c, d) + x + (UInt32)0x7a6d76e9;
+            a += G(b, c, d) + x + (uint)0x7a6d76e9;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        static void HHH(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void HHH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += H(b, c, d) + x + (UInt32)0x6d703ef3;
+            a += H(b, c, d) + x + (uint)0x6d703ef3;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        static void III(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void III(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += I(b, c, d) + x + (UInt32)0x5c4dd124;
+            a += I(b, c, d) + x + (uint)0x5c4dd124;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        static void JJJ(ref UInt32 a, UInt32 b, ref UInt32 c, UInt32 d, UInt32 e, UInt32 x, int s)
+        private static void JJJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
         {
-            a += J(b, c, d) + x + (UInt32)0x50a28be6;
+            a += J(b, c, d) + x + (uint)0x50a28be6;
             a = RotateLeft(a, s) + e;
             c = RotateLeft(c, 10);
         }
 
-        /// initializes MDbuffer to "magic constants"
-        static public void MDinit(ref UInt32[] MDbuf)
+        // initializes MDbuffer to "magic constants"
+        static public void MDinit(ref uint[] MDbuf)
         {
-            MDbuf[0] = (UInt32)0x67452301;
-            MDbuf[1] = (UInt32)0xefcdab89;
-            MDbuf[2] = (UInt32)0x98badcfe;
-            MDbuf[3] = (UInt32)0x10325476;
-            MDbuf[4] = (UInt32)0xc3d2e1f0;
+            MDbuf[0] = (uint)0x67452301;
+            MDbuf[1] = (uint)0xefcdab89;
+            MDbuf[2] = (uint)0x98badcfe;
+            MDbuf[3] = (uint)0x10325476;
+            MDbuf[4] = (uint)0xc3d2e1f0;
         }
 
-        ///  the compression function.
-        ///  transforms MDbuf using message bytes X[0] through X[15]
-        static public void compress(ref UInt32[] MDbuf, UInt32[] X)
+        //  the compression function.
+        //  transforms MDbuf using message bytes X[0] through X[15]
+        static public void compress(ref uint[] MDbuf, uint[] X)
         {
-            UInt32 aa = MDbuf[0];
-            UInt32 bb = MDbuf[1];
-            UInt32 cc = MDbuf[2];
-            UInt32 dd = MDbuf[3];
-            UInt32 ee = MDbuf[4];
-            UInt32 aaa = MDbuf[0];
-            UInt32 bbb = MDbuf[1];
-            UInt32 ccc = MDbuf[2];
-            UInt32 ddd = MDbuf[3];
-            UInt32 eee = MDbuf[4];
+            uint aa = MDbuf[0];
+            uint bb = MDbuf[1];
+            uint cc = MDbuf[2];
+            uint dd = MDbuf[3];
+            uint ee = MDbuf[4];
+            uint aaa = MDbuf[0];
+            uint bbb = MDbuf[1];
+            uint ccc = MDbuf[2];
+            uint ddd = MDbuf[3];
+            uint eee = MDbuf[4];
 
             /* round 1 */
             FF(ref aa, bb, ref cc, dd, ee, X[0], 11);
@@ -347,14 +347,14 @@ namespace System.Security.Cryptography
             MDbuf[0] = ddd;
         }
 
-        ///  puts bytes from strptr into X and pad out; appends length 
-        ///  and finally, compresses the last block(s)
-        ///  note: length in bits == 8 * (lswlen + 2^32 mswlen).
-        ///  note: there are (lswlen mod 64) bytes left in strptr.
-        static public void MDfinish(ref UInt32[] MDbuf, byte[] strptr, long index, UInt32 lswlen, UInt32 mswlen)
+        //  puts bytes from strptr into X and pad out; appends length 
+        //  and finally, compresses the last block(s)
+        //  note: length in bits == 8 * (lswlen + 2^32 mswlen).
+        //  note: there are (lswlen mod 64) bytes left in strptr.
+        static public void MDfinish(ref uint[] MDbuf, byte[] strptr, long index, uint lswlen, uint mswlen)
         {
             //UInt32 i;                                 /* counter       */
-            var X = Enumerable.Repeat((UInt32)0, 16).ToArray();                             /* message words */
+            var X = Enumerable.Repeat((uint)0, 16).ToArray();                             /* message words */
 
 
             /* put bytes from strptr into X */
@@ -365,13 +365,13 @@ namespace System.Security.Cryptography
             }
 
             /* append the bit m_n == 1 */
-            X[(lswlen >> 2) & 15] ^= (UInt32)1 << Convert.ToInt32(8 * (lswlen & 3) + 7);
+            X[(lswlen >> 2) & 15] ^= (uint)1 << Convert.ToInt32(8 * (lswlen & 3) + 7);
 
             if ((lswlen & 63) > 55)
             {
                 /* length goes to next block */
                 compress(ref MDbuf, X);
-                X = Enumerable.Repeat((UInt32)0, 16).ToArray();
+                X = Enumerable.Repeat((uint)0, 16).ToArray();
             }
 
             /* append length in bits*/
@@ -379,12 +379,12 @@ namespace System.Security.Cryptography
             X[15] = (lswlen >> 29) | (mswlen << 3);
             compress(ref MDbuf, X);
         }
-        static int RMDsize = 160;
-        UInt32 [] MDbuf = new UInt32 [RMDsize / 32];
-        UInt32 [] X = new UInt32[16];               /* current 16-word chunk        */
-        byte [] UnhashedBuffer = new byte[64];
-        int UnhashedBufferLength = 0;
-        long HashedLength = 0;
+        private static int RMDsize = 160;
+        private uint[] MDbuf = new uint[RMDsize / 32];
+        private uint[] X = new uint[16];               /* current 16-word chunk        */
+        private byte [] UnhashedBuffer = new byte[64];
+        private int UnhashedBufferLength = 0;
+        private long HashedLength = 0;
 
         public RIPEMD160Managed()
         {
@@ -460,7 +460,7 @@ namespace System.Security.Cryptography
         public override void Initialize ()
         {
             MDinit(ref MDbuf);
-            X = Enumerable.Repeat((UInt32)0, 16).ToArray();
+            X = Enumerable.Repeat((uint)0, 16).ToArray();
             HashedLength = 0;
             UnhashedBufferLength = 0;
         }
