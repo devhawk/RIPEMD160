@@ -1,15 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <Authors>Luqman Hussain</Authors>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Port of H. Dobbertin, A. Bosselaers, B. Preneel, ``RIPEMD-160, a strengthened version of RIPEMD for .NET Core 2.0</Description>
-    <RepositoryUrl>https://github.com/luqmanhussain/RIPEMD160</RepositoryUrl>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Luqman Hussain, Neo Global Development Seattle</Authors>
+    <Description>Port of H. Dobbertin, A. Bosselaers, B. Preneel, ``RIPEMD-160, a strengthened version of RIPEMD for .NET Standard 2.1</Description>
+    <RepositoryUrl>https://github.com/ngdseattle/RIPEMD160</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
-    <Version>1.0.1</Version>
   </PropertyGroup>
 
 </Project>
