@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29403.142
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RIPEMD160", "src/RIPEMD160.csproj", "{63CD635F-8109-44FE-A996-25FC6F53C880}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RIPEMD160", "src\RIPEMD160.csproj", "{63CD635F-8109-44FE-A996-25FC6F53C880}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RIPEMD160Tests", "RIPEMD160Tests\RIPEMD160Tests.csproj", "{AC86C416-2705-4B99-ABDC-C9F981056399}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{63CD635F-8109-44FE-A996-25FC6F53C880}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63CD635F-8109-44FE-A996-25FC6F53C880}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63CD635F-8109-44FE-A996-25FC6F53C880}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC86C416-2705-4B99-ABDC-C9F981056399}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC86C416-2705-4B99-ABDC-C9F981056399}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC86C416-2705-4B99-ABDC-C9F981056399}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC86C416-2705-4B99-ABDC-C9F981056399}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
