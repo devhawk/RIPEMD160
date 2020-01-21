@@ -1,4 +1,10 @@
 variables:
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: 'a16103d8-76eb-42c8-a7a8-796422eab7b5/46678586-2ad5-4d6d-af2c-83c2a22d0319'
   buildConfiguration: Release
 
 pool:
