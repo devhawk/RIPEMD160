@@ -36,6 +36,13 @@ steps:
   displayName: 'dotnet test'
   inputs:
     command: 'test'
+    arguments: --settings ./tests/runsettings.xml
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish code coverage'
+  inputs:
+      codeCoverageTool: cobertura
+      summaryFileLocation: $(Build.SourcesDirectory)/tests/TestResults/**/coverage.cobertura.xml
 
 - publish: '$(Build.ArtifactStagingDirectory)'
   displayName: 'publish build artifact'
