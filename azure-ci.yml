@@ -43,7 +43,7 @@ steps:
   displayName: 'Publish code coverage'
   inputs:
       codeCoverageTool: cobertura
-      summaryFileLocation: $(Build.SourcesDirectory)/tests/TestResults/**/coverage.cobertura.xml
+      summaryFileLocation: $(Agent.TempDirectory)/**/coverage.cobertura.xml
 
 - publish: '$(Build.ArtifactStagingDirectory)'
   displayName: 'publish build artifact'
