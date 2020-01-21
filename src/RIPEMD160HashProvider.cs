@@ -18,6 +18,12 @@ using System.Diagnostics;
 
 namespace System.Security.Cryptography
 {
+
+    // This class is modeled after the CoreFx internal HashProvider class. 
+    // Breaking this out into a seperate class allows the core hash logic 
+    // to be shared between the HashAlgorithm and IncrementalHash implementations
+    // of RIPEMD160
+
     internal class RIPEMD160HashProvider 
     {
         private const int RMDsize = 160;
