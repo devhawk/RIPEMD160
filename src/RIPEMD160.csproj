@@ -1,21 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
     <Authors>Luqman Hussain, Harry Pierson</Authors>
     <Description>Port of H. Dobbertin, A. Bosselaers, B. Preneel, ``RIPEMD-160, a strengthened version of RIPEMD for .NET Standard 2.1</Description>
-    <RepositoryUrl>https://github.com/devhawk/RIPEMD160</RepositoryUrl>
-    <RepositoryType>Git</RepositoryType>
+    <IncludeSymbols>true</IncludeSymbols>	
     <PackageId>DevHawk.RIPEMD160</PackageId>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/devhawk/RIPEMD160</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>	
+    <RepositoryType>Git</RepositoryType>
+    <RepositoryUrl>https://github.com/devhawk/RIPEMD160</RepositoryUrl>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>	
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19554-01" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 
 </Project>
