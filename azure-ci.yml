@@ -1,5 +1,5 @@
 variables:
-  configuration: Release
+  buildConfiguration: Release
 
 pool:
   vmImage: 'windows-2019'
@@ -31,12 +31,13 @@ steps:
     command: 'pack'
     packagesToPack: '**/*.csproj'
     versioningScheme: 'off'
+    arguments: -c $(buildConfiguration)
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet test'
   inputs:
     command: 'test'
-    arguments: --settings ./tests/runsettings.xml
+    arguments: -c $(buildConfiguration) --collect:"XPlat Code Coverage" --settings ./tests/runsettings.xml
 
 - task: PublishCodeCoverageResults@1
   displayName: 'Publish code coverage'
