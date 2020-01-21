@@ -56,6 +56,26 @@ namespace RIPEMD160Tests
             Assert.True(actual.SequenceEqual(expected));
         }
 
+        static void IncrementalHashTest(string text, byte[] expected)
+        {
+            Assert.Equal(20, expected.Length);
+
+            byte[] asciiBytes = System.Text.Encoding.ASCII.GetBytes(text);
+
+            var incremental = new RIPEMD160.IncrementalHash();
+            const int chunkSize = 10;
+            for (int i = 0; i < asciiBytes.Length / chunkSize; i++)
+            {
+                incremental.AppendData(asciiBytes.AsSpan(i * chunkSize, chunkSize));
+            }
+            incremental.AppendData(asciiBytes.AsSpan(asciiBytes.Length - (asciiBytes.Length % chunkSize)));
+
+            Span<byte> actual = stackalloc byte[20];
+            Assert.True(incremental.TryGetHashAndReset(actual, out var bytesWritten));
+            Assert.Equal(20, bytesWritten);
+            Assert.True(actual.SequenceEqual(expected));
+        }
+
 
         // test data for RosettaCode test from http://rosettacode.org/wiki/RIPEMD-160#C.23
         [Fact]
@@ -65,6 +85,7 @@ namespace RIPEMD160Tests
             var expected = new byte[20] { 0xb3, 0xbe, 0x15, 0x98, 0x60, 0x84, 0x2c, 0xeb, 0xaa, 0x71, 0x74, 0xc8, 0xff, 0xf0, 0xaa, 0x9e, 0x50, 0xa5, 0x19, 0x9f };
             ComputeHashTest(text, expected);
             TryComputeHashTest(text, expected);
+            IncrementalHashTest(text, expected);
         }
 
         // test data for remaining tests from http://homes.esat.kuleuven.be/~bosselae/ripemd160.html
@@ -102,6 +123,7 @@ namespace RIPEMD160Tests
             var expected = StringToByteArrayFastest("5d0689ef49d2fae572b881b123a85ffa21595f36");
             ComputeHashTest(text, expected);
             TryComputeHashTest(text, expected);
+            IncrementalHashTest(text, expected);
         }
 
         [Fact]
@@ -111,6 +133,7 @@ namespace RIPEMD160Tests
             var expected = StringToByteArrayFastest("f71c27109c692c1b56bbdceb5b9d2865b3708dbc");
             ComputeHashTest(text, expected);
             TryComputeHashTest(text, expected);
+            IncrementalHashTest(text, expected);
         }
 
         [Fact]
@@ -120,6 +143,7 @@ namespace RIPEMD160Tests
             var expected = StringToByteArrayFastest("12a053384a9c0c88e405a06c27dcf49ada62eb2b");
             ComputeHashTest(text, expected);
             TryComputeHashTest(text, expected);
+            IncrementalHashTest(text, expected);
         }
 
         [Fact]
@@ -129,6 +153,7 @@ namespace RIPEMD160Tests
             var expected = StringToByteArrayFastest("b0e20b6e3116640286ed3a87a5713079b21f5189");
             ComputeHashTest(text, expected);
             TryComputeHashTest(text, expected);
+            IncrementalHashTest(text, expected);
         }
 
         [Fact]
@@ -138,6 +163,7 @@ namespace RIPEMD160Tests
             var expected = StringToByteArrayFastest("9b752e45573d4b39f4dbd3323cab82bf63326bfb");
             ComputeHashTest(text, expected);
             TryComputeHashTest(text, expected);
+            IncrementalHashTest(text, expected);
         }
     }
 }

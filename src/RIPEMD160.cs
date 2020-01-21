@@ -8,8 +8,10 @@
 
 namespace System.Security.Cryptography
 {
-    public sealed class RIPEMD160 : HashAlgorithm
+    public sealed partial class RIPEMD160 : HashAlgorithm
     {
+        public new const int HashSize = RIPEMD160HashProvider.RequiredBufferLength;
+
         private readonly RIPEMD160HashProvider hashProvider;
 
         public RIPEMD160()
