@@ -6,7 +6,7 @@ namespace RIPEMD160Tests
 {
     public class TestRIPEMD160
     {
-        static Lazy<RIPEMD160> ripemd160 = new Lazy<RIPEMD160>(() => RIPEMD160.Create());
+        static Lazy<RIPEMD160> ripemd160 = new Lazy<RIPEMD160>(() => new RIPEMD160());
 
         // from https://stackoverflow.com/a/9995303
         static byte[] StringToByteArrayFastest(string hex)
