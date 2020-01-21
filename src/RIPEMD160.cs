@@ -8,20 +8,40 @@
 
 namespace System.Security.Cryptography
 {
-    public abstract class RIPEMD160 : System.Security.Cryptography.HashAlgorithm
+    public sealed partial class RIPEMD160 : HashAlgorithm
     {
+        public new const int HashSize = RIPEMD160HashProvider.RequiredBufferLength;
+
+        private readonly RIPEMD160HashProvider hashProvider;
+
         public RIPEMD160()
         {
+            hashProvider = new RIPEMD160HashProvider();
+            HashSizeValue = RIPEMD160HashProvider.RequiredBufferLength;
         }
 
-        public new static RIPEMD160 Create()
+        public override void Initialize()
         {
-            return new RIPEMD160Managed();
         }
 
-        public new static RIPEMD160 Create(string hashname)
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
-            return new RIPEMD160Managed();            
+            hashProvider.AppendHashData(array.AsSpan(ibStart, cbSize));
+        }
+
+        protected override void HashCore(ReadOnlySpan<byte> source)
+        {
+            hashProvider.AppendHashData(source);
+        }
+
+        protected override byte[] HashFinal()
+        {
+            return hashProvider.FinalizeHashAndReset();
+        }
+
+        protected override bool TryHashFinal(Span<byte> destination, out int bytesWritten)
+        {
+            return hashProvider.TryFinalizeHashAndReset(destination, out bytesWritten);
         }
     }
 }

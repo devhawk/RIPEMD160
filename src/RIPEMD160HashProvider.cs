@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,34 +18,28 @@ using System.Diagnostics;
 
 namespace System.Security.Cryptography
 {
-    public class RIPEMD160Managed : RIPEMD160
+
+    // This class is modeled after the CoreFx internal HashProvider class. 
+    // Breaking this out into a seperate class allows the core hash logic 
+    // to be shared between the HashAlgorithm and IncrementalHash implementations
+    // of RIPEMD160
+
+    internal class RIPEMD160HashProvider 
     {
         private const int RMDsize = 160;
+        internal const int RequiredBufferLength = RMDsize / 8;
         private uint[] MDbuf = new uint[RMDsize / 32];
         private uint[] X;               /* current 16-word chunk        */
         private readonly byte [] UnhashedBuffer = new byte[64];
         private int UnhashedBufferLength = 0;
         private long HashedLength = 0;
 
-        public RIPEMD160Managed()
+        public RIPEMD160HashProvider()
         {
-            Initialize();
+            ResetHashObject();
         }
 
-        public override void Initialize()
-        {
-            MDinit(ref MDbuf);
-            X = new uint[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            HashedLength = 0;
-            UnhashedBufferLength = 0;
-        }
-
-        protected override void HashCore (byte[] array, int ibStart, int cbSize)
-        {
-            HashCore(array.AsSpan().Slice(ibStart, cbSize));
-        }
-
-        protected override void HashCore(ReadOnlySpan<byte> source)
+        public void AppendHashData(ReadOnlySpan<byte> source)
         {
             var index = 0;
             var cbSize = source.Length;
@@ -96,50 +90,55 @@ namespace System.Security.Cryptography
             HashedLength += cbSize;
         }
 
-        protected override byte[] HashFinal ()
+        public byte[] FinalizeHashAndReset()
         {
-            var result = new byte[RMDsize / 8];
-
-            if (TryHashFinal(result, out var bytesWritten))
-            {
-                Debug.Assert(bytesWritten == result.Length);
-                return result;
-            }
-
-            throw new Exception("TryHashFinal failed");
+            var hash = new byte[RequiredBufferLength];
+            bool success = TryFinalizeHashAndReset(hash, out int bytesWritten);
+            Debug.Assert(success);
+            Debug.Assert(hash.Length == bytesWritten);
+            return hash;
         }
 
-        protected override bool TryHashFinal(Span<byte> destination, out int bytesWritten)
+        public bool TryFinalizeHashAndReset(Span<byte> destination, out int bytesWritten)
         {
-            MDfinish(ref MDbuf, UnhashedBuffer, 0, Convert.ToUInt32(HashedLength), 0);
-
-            var requiredBufferLength = RMDsize / 8;
-            if (destination.Length >= requiredBufferLength)
+            if (destination.Length < RequiredBufferLength)
             {
-                for (var i = 0; i < RMDsize / 8; i += 4)
-                {
-                    destination[i] = Convert.ToByte(MDbuf[i >> 2] & 0xFF);         /* implicit cast to byte  */
-                    destination[i + 1] = Convert.ToByte((MDbuf[i >> 2] >> 8) & 0xFF);  /*  extracts the 8 least  */
-                    destination[i + 2] = Convert.ToByte((MDbuf[i >> 2] >> 16) & 0xFF);  /*  significant bits.     */
-                    destination[i + 3] = Convert.ToByte((MDbuf[i >> 2] >> 24) & 0xFF);
-                }
-
-                bytesWritten = requiredBufferLength;
-                return true;
+                bytesWritten = default;
+                return false;
             }
 
-            bytesWritten = default;
-            return false;
+            if (HashedLength > uint.MaxValue)
+            {
+                throw new OverflowException();
+            }
+
+            MDfinish(ref MDbuf, UnhashedBuffer, 0, (uint)HashedLength, 0);
+
+            for (var i = 0; i < RequiredBufferLength; i += 4)
+            {
+                destination[i] = (byte)(MDbuf[i >> 2] & 0xFF);         /* implicit cast to byte  */
+                destination[i + 1] = (byte)((MDbuf[i >> 2] >> 8) & 0xFF);  /*  extracts the 8 least  */
+                destination[i + 2] = (byte)((MDbuf[i >> 2] >> 16) & 0xFF);  /*  significant bits.     */
+                destination[i + 3] = (byte)((MDbuf[i >> 2] >> 24) & 0xFF);
+            }
+
+            bytesWritten = RequiredBufferLength;
+            ResetHashObject();
+            return true;
         }
 
-        // initializes MDbuffer to "magic constants"
-        static public void MDinit(ref uint[] MDbuf)
+        private void ResetHashObject()
         {
+            // initializes MDbuffer to "magic constants"
             MDbuf[0] = 0x67452301;
             MDbuf[1] = 0xefcdab89;
             MDbuf[2] = 0x98badcfe;
             MDbuf[3] = 0x10325476;
             MDbuf[4] = 0xc3d2e1f0;
+            
+            X = new uint[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            HashedLength = 0;
+            UnhashedBufferLength = 0;
         }
 
         //  the compression function.
