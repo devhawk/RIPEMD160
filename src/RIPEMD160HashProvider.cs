@@ -29,7 +29,7 @@ namespace System.Security.Cryptography
         private const int RMDsize = 160;
         internal const int RequiredBufferLength = RMDsize / 8;
         private uint[] MDbuf = new uint[RMDsize / 32];
-        private uint[] X;               /* current 16-word chunk        */
+        private uint[] X = Array.Empty<uint>();               /* current 16-word chunk        */
         private readonly byte [] UnhashedBuffer = new byte[64];
         private int UnhashedBufferLength = 0;
         private long HashedLength = 0;
