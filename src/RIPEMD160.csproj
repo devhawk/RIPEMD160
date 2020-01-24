@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Authors>Luqman Hussain, Harry Pierson</Authors>
-    <Description>Port of H. Dobbertin, A. Bosselaers, B. Preneel, ``RIPEMD-160, a strengthened version of RIPEMD for .NET Standard 2.1</Description>
+    <Authors>Harry Pierson</Authors>
+    <Company>Harry Pierson</Company>
+    <Description>RIPEMD-160 hash algoithm implementaiton for .NET Standard 2.1</Description>
     <IncludeSymbols>true</IncludeSymbols>	
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <PackageId>DevHawk.RIPEMD160</PackageId>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/devhawk/RIPEMD160</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryType>Git</RepositoryType>

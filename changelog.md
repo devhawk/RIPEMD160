@@ -23,7 +23,12 @@ may not exactly match a publicly released version.
 - Added internal `RIPEMD160HashProvider` class to share hashing logic between `RIPEMD160`
   and `RIPEMD160.IncrementalHash` classes
 - added [SourceLink](https://github.com/dotnet/sourcelink) support.
-- Moved to C# 8 and enabled [Nullable Reference Types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)
+
+### Changed
+
+- **Breaking Change**: Changed top level namespace from `System` to `DevHawk`
+- Changed to C# version 8 and enabled [Nullable Reference Types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)
+- Changed to MIT license
 
 ### Removed
 
