@@ -115,7 +115,7 @@ namespace RIPEMD160Tests
             ComputeHashTest(text, expected);
             TryComputeHashTest(text, expected);
         }
-        
+
         [Fact]
         public void message_digest()
         {

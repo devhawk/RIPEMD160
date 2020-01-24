@@ -24,13 +24,13 @@ namespace System.Security.Cryptography
     // to be shared between the HashAlgorithm and IncrementalHash implementations
     // of RIPEMD160
 
-    internal class RIPEMD160HashProvider 
+    internal class RIPEMD160HashProvider
     {
         private const int RMDsize = 160;
         public const int RequiredBufferLength = RMDsize / 8;
         private uint[] MDbuf = new uint[RMDsize / 32];
         private uint[] X = Array.Empty<uint>();               /* current 16-word chunk        */
-        private readonly byte [] UnhashedBuffer = new byte[64];
+        private readonly byte[] UnhashedBuffer = new byte[64];
         private int UnhashedBufferLength = 0;
         private long HashedLength = 0;
 
@@ -135,7 +135,7 @@ namespace System.Security.Cryptography
             MDbuf[2] = 0x98badcfe;
             MDbuf[3] = 0x10325476;
             MDbuf[4] = 0xc3d2e1f0;
-            
+
             X = new uint[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             HashedLength = 0;
             UnhashedBufferLength = 0;
