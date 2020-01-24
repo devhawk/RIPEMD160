@@ -27,7 +27,7 @@ namespace System.Security.Cryptography
     internal class RIPEMD160HashProvider 
     {
         private const int RMDsize = 160;
-        internal const int RequiredBufferLength = RMDsize / 8;
+        public const int RequiredBufferLength = RMDsize / 8;
         private uint[] MDbuf = new uint[RMDsize / 32];
         private uint[] X = Array.Empty<uint>();               /* current 16-word chunk        */
         private readonly byte [] UnhashedBuffer = new byte[64];
