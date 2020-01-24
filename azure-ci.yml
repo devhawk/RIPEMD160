@@ -98,3 +98,9 @@ stages:
                   packagesToPush: '$(Pipeline.Workspace)/NugetPackage/*.nupkg'
                   nuGetFeedType: 'external'
                   publishFeedCredentials: 'nuget-org'
+              - task: NuGetCommand@2
+                inputs:
+                  command: 'push'
+                  packagesToPush: '$(Pipeline.Workspace)/NugetPackage/*.snupkg'
+                  nuGetFeedType: 'external'
+                  publishFeedCredentials: 'nuget-org'
