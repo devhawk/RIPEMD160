@@ -71,7 +71,6 @@ stages:
     steps:
     - checkout: none
     - download: current
-      artifact: NugetPackage
 
     - task: NuGetCommand@2
       inputs:
