@@ -1,12 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿// Copyright (c) Harry Pierson. All rights reserved.
+// Licensed under the MIT license. 
+// See LICENSE file in the project root for full license information.
 
-// Contributed to .NET Foundation by Darren R. Starr - Conscia Norway AS
+using System;
 
-// Updated to .NET Standard 2.1 by Harry Pierson (aka DevHawk)
-
-namespace System.Security.Cryptography
+namespace DevHawk.Security.Cryptography
 {
     public sealed partial class RIPEMD160
     {
