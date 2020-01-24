@@ -63,7 +63,6 @@ stages:
 - stage: publishAzure
   displayName: 'publish artifacts to azure feed'
   dependsOn: build
-  condition: succeeded()
   jobs:
   - job:
     pool:
@@ -76,6 +75,26 @@ stages:
     - task: NuGetCommand@2
       inputs:
         command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/NugetPackage**/*.nupkg'
+        packagesToPush: '$(Pipeline.Workspace)/NugetPackage/*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'a16103d8-76eb-42c8-a7a8-796422eab7b5/46678586-2ad5-4d6d-af2c-83c2a22d0319'
+
+- stage: publishNugetOrg
+  displayName: 'publish artifacts to nuget.org'
+  dependsOn: build
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))
+  jobs:
+    - deployment: 
+      pool:
+        vmImage: 'windows-2019'
+      environment: 'nuget-org'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - task: NuGetCommand@2
+                inputs:
+                  command: 'push'
+                  packagesToPush: '$(Pipeline.Workspace)/NugetPackage/*.nupkg'
+                  nuGetFeedType: 'external'
+                  publishFeedCredentials: 'nuget-org'
