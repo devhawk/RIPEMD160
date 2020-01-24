@@ -1,9 +1,3 @@
-variables:
-  buildConfiguration: Release
-
-pool:
-  vmImage: 'windows-2019'
-
 trigger:
   batch: false
   branches:
@@ -18,40 +12,57 @@ trigger:
     - 'changelog.md'
     - 'docs/*'
 
-steps:
-- task: UseDotNet@2
-  displayName: 'use .NET Core SDK from global.json'
-  inputs:
-    packageType: 'sdk'
-    useGlobalJson: true
+stages:
+- stage: build
+  variables:
+    buildConfiguration: Release
+  jobs:
+  - job:
+    pool:
+      vmImage: 'windows-2019'
+    workspace:
+      clean: all
+    steps:
+    - task: UseDotNet@2
+      displayName: 'use .NET Core SDK from global.json'
+      inputs:
+        packageType: 'sdk'
+        useGlobalJson: true
 
-- task: DotNetCoreCLI@2
-  displayName: 'dotnet pack'
-  inputs:
-    command: 'pack'
-    packagesToPack: '**/*.csproj'
-    versioningScheme: 'off'
-    arguments: -c $(buildConfiguration)
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet build'
+      inputs:
+        command: 'build'
+        projects: '**/*.csproj'
+        versioningScheme: 'off'
+        arguments: -c $(buildConfiguration)
 
-- task: DotNetCoreCLI@2
-  displayName: 'dotnet test'
-  inputs:
-    command: 'test'
-    arguments: -c $(buildConfiguration) --collect:"XPlat Code Coverage" --settings ./tests/runsettings.xml
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet test'
+      inputs:
+        command: 'test'
+        arguments: -c $(buildConfiguration) --no-build --collect:"XPlat Code Coverage" --settings ./tests/runsettings.xml
 
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publish code coverage'
-  inputs:
-      codeCoverageTool: cobertura
-      summaryFileLocation: $(Agent.TempDirectory)/**/coverage.cobertura.xml
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage'
+      inputs:
+          codeCoverageTool: cobertura
+          summaryFileLocation: $(Agent.TempDirectory)/**/coverage.cobertura.xml
 
-- publish: '$(Build.ArtifactStagingDirectory)'
-  displayName: 'publish build artifact'
-  name: nugetPackage    
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet pack'
+      inputs:
+        command: 'pack'
+        packagesToPack: '**/*.csproj'
+        versioningScheme: 'off'
+        arguments: -c $(buildConfiguration) --no-build
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: 'a16103d8-76eb-42c8-a7a8-796422eab7b5/46678586-2ad5-4d6d-af2c-83c2a22d0319'
+    - publish: '$(Build.ArtifactStagingDirectory)'
+      artifact: NugetPackage    
+
+    # - task: NuGetCommand@2
+    #   inputs:
+    #     command: 'push'
+    #     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    #     nuGetFeedType: 'internal'
+    #     publishVstsFeed: 'a16103d8-76eb-42c8-a7a8-796422eab7b5/46678586-2ad5-4d6d-af2c-83c2a22d0319'
