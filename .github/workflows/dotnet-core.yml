@@ -1,0 +1,41 @@
+name: .NET Core
+
+on:
+  push:
+    branches: 
+    - master
+    - release/*
+  pull_request:
+    branches:
+    - master
+    - release/*
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Pack 
+      run: dotnet pack --output ./out --configuration Release --no-build --verbosity normal
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: package
+        path: ./out/*
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Publish package
+      if: ${{ github.event_name == 'push' }}
+      run: dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key ${GITHUB_TOKEN} --source https://nuget.pkg.github.com/devhawk/index.json --skip-duplicate --no-symbols true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
