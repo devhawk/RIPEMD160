@@ -35,6 +35,7 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --verbosity normal
     - name: Publish package
+      if: ${{ github.event_name == 'push' }}
       run: dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key ${GITHUB_TOKEN} --source https://nuget.pkg.github.com/devhawk/index.json --skip-duplicate --no-symbols true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
