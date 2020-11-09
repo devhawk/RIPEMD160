@@ -40,7 +40,7 @@ jobs:
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        FILE_NAME: DevHawk.Buffers.${{ env.NUGET_PACKAGE_VERSION }}.nupkg
+        FILE_NAME: DevHawk.RIPEMD160.${{ env.NUGET_PACKAGE_VERSION }}.nupkg
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./out/${{ env.FILE_NAME }}
@@ -51,7 +51,7 @@ jobs:
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        FILE_NAME: DevHawk.Buffers.${{ env.NUGET_PACKAGE_VERSION }}.snupkg
+        FILE_NAME: DevHawk.RIPEMD160.${{ env.NUGET_PACKAGE_VERSION }}.snupkg
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./out/${{ env.FILE_NAME }}
@@ -60,6 +60,6 @@ jobs:
 
     - name: Publish package
       run: |
-        dotnet nuget push ./out/DevHawk.Buffers.*.nupkg --api-key ${NUGET_ORG_API_KEY} --source https://api.nuget.org/v3/index.json
+        dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key ${NUGET_ORG_API_KEY} --source https://api.nuget.org/v3/index.json
       env:
         NUGET_ORG_API_KEY: ${{ secrets.NUGET_ORG_API_KEY }}
