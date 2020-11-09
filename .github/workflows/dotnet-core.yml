@@ -12,15 +12,18 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    if: contains(github.event.head_commit.message, '*NO_CI*') == false
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
+      with:
+        source-url: https://devhawk.pkgs.visualstudio.com/Public/_packaging/DevHawkPackages/nuget/v3/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.AZURE_ARTIFACTS_PAT }}
     - name: Install dependencies
       run: dotnet restore
     - name: Build
@@ -36,6 +39,8 @@ jobs:
       run: dotnet test --no-restore --verbosity normal
     - name: Publish package
       if: ${{ github.event_name == 'push' }}
-      run: dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key ${GITHUB_TOKEN} --source https://nuget.pkg.github.com/devhawk/index.json --skip-duplicate --no-symbols true
+      run: |
+        dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key ${GITHUB_TOKEN} --source https://nuget.pkg.github.com/devhawk/index.json
+        dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key AzureDevOps
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
