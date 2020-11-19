@@ -47,7 +47,7 @@ jobs:
         SLEET_FEED_CONTAINER: feed
         SLEET_FEED_CONNECTIONSTRING: ${{secrets.SLEET_CONNECTIONSTRING}}
       run: |
-        dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key ${GITHUB_TOKEN} --source https://nuget.pkg.github.com/devhawk/index.json
-        dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key AzureDevOps
+        dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key ${GITHUB_TOKEN} --source https://nuget.pkg.github.com/devhawk/index.json --skip-duplicate
+        dotnet nuget push ./out/DevHawk.RIPEMD160.*.nupkg --api-key AzureDevOps --skip-duplicate
         dotnet tool install -g sleet
         sleet push ./out --skip-existing
